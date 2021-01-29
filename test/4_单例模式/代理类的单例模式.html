@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>代理类的单例模式</title>
+  </head>
+  <body>
+    <script>
+      /**
+       * 代理类 单例模式
+       *
+       * 代理：当我们不希望基础类或者基础模型被特定的业务进行限制时
+       *       我们将一些特殊业务需求或者特定的代码逻辑，封装到一个代理中。
+       */
+      var CreateDiv = function (html) {
+        this.html = html;
+        this.init();
+      };
+
+      CreateDiv.prototype.init = function () {
+        var div = document.createElement("div");
+        div.innerHTML = this.html;
+        document.body.appendChild(div);
+      };
+
+      var ProxySingletonCreative = (function () {
+        var instance = null;
+        return function (html) {
+          if (!instance) {
+            instance = new CreateDiv(html);
+          }
+          return instance;
+        };
+      })();
+
+      var test1 = new ProxySingletonCreative("test1");
+      var test2 = new ProxySingletonCreative("test2");
+
+      console.log(test1 === test2);
+
+      console.log(test1);
+    </script>
+  </body>
+</html>

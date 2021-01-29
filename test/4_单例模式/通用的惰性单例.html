@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>通用的惰性单例</title>
+  </head>
+  <body>
+    <button id="csingleDiv">点我创建一个单例div</button>
+    <button id="csingleSpan">点我创建一个单例span</button>
+    <button id="csingleSpan2">点我再创建一个单例span</button>
+    <script>
+      /**
+       * 抽离变的，保留不变的
+       * 仍然保证利用闭包进行变量的保存
+       */
+      var createSingle = function (fn) {
+        var result;
+        return function () {
+          //这个 关系运算的使用 很巧妙
+          return result || (result = fn.apply(this, arguments));
+        };
+      };
+
+      var createDiv = function () {
+        div = document.createElement("div");
+        div.innerHTML = "这是一个DIV";
+        div.style.display = "none";
+        div.style.height = "100px";
+        div.style.background = "red";
+        document.body.appendChild(div);
+        return div;
+      };
+
+      var createSpan = function () {
+        span = document.createElement("span");
+        span.innerHTML = "这是一个SPAN";
+        span.style.display = "none";
+        span.style.height = "20px";
+        span.style.background = "blue";
+        document.body.appendChild(span);
+        return span;
+      };
+
+      var CsingleDiv = createSingle(createDiv);
+      var CsingleSpan = createSingle(createSpan);
+
+      console.log(CsingleDiv === CsingleSpan);
+
+      document.getElementById("csingleDiv").onclick = function () {
+        var singleDiv = CsingleDiv();
+        singleDiv.style.display = "block";
+      };
+
+      document.getElementById("csingleSpan").onclick = function () {
+        var singleSpan = CsingleSpan();
+        singleSpan.style.display = "block";
+      };
+
+      document.getElementById("csingleSpan2").onclick = function () {
+        var singleSpan = CsingleSpan();
+        singleSpan.style.display = "block";
+      };
+    </script>
+  </body>
+</html>
