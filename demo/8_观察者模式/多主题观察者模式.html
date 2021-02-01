@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>多主题观察者模式</title>
+  </head>
+  <body>
+    <script>
+      function Subject() {
+        this.subjects = {};
+      }
+
+      // 注册主题
+      Subject.prototype.setSubject = function (name, info) {
+        let subject = this.subjects[name];
+        if (subject) {
+          subject.info = info;
+          if (subject.observer.length > 0) {
+            this.notifyObservers(name, subject.observers);
+          }
+        } else {
+          this.subjects[name] = { info, observers: [] };
+        }
+      };
+
+      Subject.prototype.removeSubject = function (name) {
+        if (!this.subjects[name]) {
+          console.log(`no subject for ${name}`);
+          return;
+        }
+        delete this.subjects[name];
+        console.log(`remove subject for ${name} is success`);
+      };
+
+      Subject.prototype.getSubjectInfo = function (name) {
+        return this.subjects[name].info;
+      };
+
+      // 发布主题
+      Subject.prototype.notifyObservers = function (name, observers) {
+        for (let observer of observers) {
+          observer.callback.call(observer._self, this.getSubjectInfo(name));
+        }
+      };
+
+      // 订阅主题
+      Subject.prototype.attach = function (_self, name, callback) {
+        if (typeof name !== "string")
+          throw new Error("subject name must be a string");
+
+        if (typeof callback !== "function")
+          throw new Error("subject callback must be a function");
+
+        const subject = this.subjects[name];
+        if (subject) {
+          subject.observers.push({ _self, callback });
+        } else {
+          this.subjects[name] = { observers: [{ _self, callback }] };
+        }
+      };
+
+      function Observer(name) {
+        this.name = name;
+      }
+
+      const s = new Subject();
+      const o1 = new Observer("o1");
+      const o2 = new Observer("o2");
+
+      s.attach(o1, "s1", function (info) {
+        console.log(`${this.name} get info,new state is ${info}`);
+      });
+
+      s.attach(o2, "s1", function (info) {
+        console.log(`${this.name} get info,new state is ${info}`);
+      });
+
+      s.setSubject("s1", "happy");
+      s.removeSubject("s1");
+      s.setSubject("s1", "normal");
+    </script>
+  </body>
+</html>
