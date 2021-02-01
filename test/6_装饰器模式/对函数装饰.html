@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>函数装饰</title>
+  </head>
+  <body>
+    <script>
+      Function.prototype.before = function (fn) {
+        var _self = this;
+        return function () {
+          fn.apply(_self);
+          _self.apply(this);
+        };
+      };
+
+      Function.prototype.after = function (fn) {
+        var _self = this;
+        return function () {
+          var ret = _self.apply(this);
+          fn.apply(_self);
+          return ret;
+        };
+      };
+
+      var test = function () {
+        console.log("show 2");
+      };
+
+      test = test.before(function () {
+        console.log("show 1");
+      });
+
+      test = test.after(function () {
+        console.log("show 3");
+      });
+
+      test();
+    </script>
+  </body>
+</html>

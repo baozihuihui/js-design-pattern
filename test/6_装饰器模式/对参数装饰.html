@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>参数装饰</title>
+  </head>
+  <body>
+    <script>
+      Function.prototype.addParam = function (fn) {
+        var _self = this;
+        return function () {
+          fn.apply(_self, arguments);
+          return _self.apply(this, arguments);
+        };
+      };
+
+      test = function (param) {
+        return param;
+      };
+
+      test = test.addParam(function (param) {
+        param.b = "b";
+      });
+
+      const param = test({ a: "a" });
+      console.log(param);
+    </script>
+  </body>
+</html>
