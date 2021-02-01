@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>代理缓存-工厂</title>
+  </head>
+  <body>
+    <script>
+      function sum() {
+        const result = Array.prototype.reduce.call(
+          arguments,
+          function (sum, val) {
+            return sum + val;
+          },
+          0
+        );
+        return result;
+      }
+
+      function multip() {
+        const result = Array.prototype.reduce.call(
+          arguments,
+          function (sum, val) {
+            return sum * val;
+          },
+          1
+        );
+        return result;
+      }
+
+      // 这里与装饰器模式设计意图不同，所以实现不同。代理模式会在真实调用类之间添加代理，且调用类无法被访问，但装饰器模式是在原有类上进行扩增
+      function ProxyCache(fn) {
+        var cache = {};
+        return function () {
+          var key = Array.prototype.join.apply(arguments, ["_"]);
+          if (!cache[key]) {
+            cache[key] = fn.apply(this, arguments);
+            console.log(key, "no use cache!");
+          }
+          return cache[key];
+        };
+      }
+
+      var sumProxyCache = ProxyCache(sum);
+      var multipProxyCache = ProxyCache(multip);
+
+      console.log(sumProxyCache(1, 2, 3));
+      console.log(sumProxyCache(1, 2, 3));
+    </script>
+  </body>
+</html>

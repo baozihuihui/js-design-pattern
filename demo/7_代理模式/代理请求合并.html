@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+    <title>代理请求合并</title>
+  </head>
+  <body>
+    <div id="target">
+        <input type="checkbox" id="1" >1</input> 
+        <input type="checkbox" id="2" >2</input> 
+        <input type="checkbox" id="3" >3</input>  
+        <input type="checkbox" id="4" >4</input> 
+        <input type="checkbox" id="5" >5</input> 
+    </div>
+    <script>
+        /*--- 基础类 ---*/
+          var synccheckbox = function(id){
+            console.log("选中的复选框id为："+id);
+        };
+      /*--- 代理类 ---*/
+        var ProxySync = (function(){
+          var cache = new Set(),
+              timer;
+          return function(id,type){
+            if(type === "push"){
+                cache.add(id);
+            }else if(type="remove"){
+                cache.delete(id)
+            }else{
+                throw Error("无此模式")
+            }
+            
+            if(timer){ //保证不会覆盖已存在定时器
+                return ;
+            }
+
+            timer = setTimeout(function(){
+                if(cache.size>0){
+                    synccheckbox(Array.from(cache.values()).join(","));
+                }else{
+                    console.log("no checked!")
+                }
+                clearTimeout(timer);
+                timer = null;
+            },2000);
+          }
+        })();
+      /*--- 调用者 ---*/
+      var target = document.getElementById("target");
+      target.onclick = function(e){
+          if(e.target.type === "checkbox"){
+              if(e.target.checked){
+                ProxySync(e.target.id,"push");
+              }else{
+                ProxySync(e.target.id),"remove";
+              }
+          }
+      }
+
+    </script>
+  </body>
+</html>
