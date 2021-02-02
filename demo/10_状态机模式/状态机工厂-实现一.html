@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>状态机工厂-实现一</title>
+  </head>
+  <body>
+    <script>
+      function StateFactory(options) {
+        function State() {}
+        State.prototype.changeState = function () {
+          throw new Error("changeState 必须被实现");
+        };
+        const s = new State();
+        for (let i in options) {
+          s[i] = options[i];
+        }
+        return s;
+      }
+
+      function Light(options) {
+        const _ligth = this;
+        this.onState = new StateFactory({
+          name: "on",
+          state: "开灯",
+          changeState: function () {
+            console.log(`当前状态 ${this.state},关灯成功！`);
+            _ligth.setState(_ligth.offState);
+          },
+        });
+        this.offState = new StateFactory({
+          name: "off",
+          state: "关灯",
+          changeState: function () {
+            console.log(`当前状态 ${this.state},开灯成功！`);
+            _ligth.setState(_ligth.onState);
+          },
+        });
+        this.currentState = null;
+        console.log("构建 light");
+      }
+
+      Light.prototype.setState = function (state) {
+        this.currentState = state;
+      };
+
+      Light.prototype.change = function () {
+        if (!this.currentState) {
+          throw new Error("currentState is null,Light need init()");
+        }
+        this.currentState.changeState();
+      };
+
+      Light.prototype.init = function (initStateName) {
+        console.log("init light");
+        this.currentState = this[initStateName];
+      };
+
+      const light = new Light();
+      light.init("offState");
+      light.change();
+      light.change();
+      light.change();
+    </script>
+  </body>
+</html>
