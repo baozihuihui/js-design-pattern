@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>组合模式-扫描文件夹</title>
+  </head>
+  <body>
+    <script type="text/javascript">
+      /**--- 文件夹 ---*/
+      var Folder = function (name) {
+        this.name = name;
+        this.files = [];
+        this.parent = null;
+      };
+
+      Folder.prototype.add = function (file) {
+        file.parent = this;
+        this.files.push(file);
+      };
+
+      Folder.prototype.scan = function () {
+        console.log("开始扫描文件夹：" + this.name);
+        for (var i in this.files) {
+          this.files[i].scan();
+        }
+      };
+
+      Folder.prototype.remove = function () {
+        if (!this.parent) {
+          return;
+        }
+        for (var files = this.parent.files; (i = files.length - 1); i--) {
+          var file = files[i];
+          if (file === this) {
+            files.splice(i, 1);
+          }
+        }
+      };
+
+      /**--- 文件 ---*/
+      var File = function (name) {
+        this.name = name;
+        this.parent = null;
+      };
+
+      File.prototype.add = function (file) {
+        throw new Error("不能添加在文件下面");
+      };
+
+      File.prototype.scan = function () {
+        console.log("开始扫描文件：" + this.name);
+      };
+
+      File.prototype.remove = function () {
+        if (!this.parent) {
+          return;
+        }
+        for (var files = this.parent.files; (i = files.length - 1); i--) {
+          var file = files[i];
+          if (file === this) {
+            files.splice(i, 1);
+          }
+        }
+      };
+      /*--- 初始化文件夹、文件 ---*/
+      var folder = new Folder("学习资料");
+      var folder1 = new Folder("javascript");
+      var file1 = new File("深入前出Node.js");
+      var folder2 = new Folder("PHP");
+      var file2 = new File("细说PHP");
+      /*--- 将文件夹、文件进行组合，互相勾连关系 ---*/
+      folder.add(folder1);
+      folder.add(folder2);
+      folder1.add(file1);
+      folder2.add(file2);
+
+      console.log("---  移除前扫描 ---");
+      folder.scan();
+      folder2.remove();
+      console.log("---  移除后扫描 ---");
+      folder.scan();
+    </script>
+  </body>
+</html>

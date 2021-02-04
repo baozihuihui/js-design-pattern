@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>职责连模式</title>
+  </head>
+  <body>
+    <script type="text/javascript">
+      /**
+       * 如下：假设某商店预售某商品，
+       *       用户交付定金500元后会有100元的优惠券，不受库存数量限制
+       *       用户交付定金100元后会有50元的优惠券，不受库存数量限制
+       *       不交付定金的为普通用户，受库存数量限制
+       *       若库存数量少于10时，普通用户不可购买
+       *       若用户下了定金的订单但是并没有交付定金则降级为普通用户
+       */
+      function Shop(num) {
+        this.num = num;
+      }
+
+      Shop.prototype.getNum = function () {
+        return this.num;
+      };
+
+      Shop.prototype.order = function (user) {
+        if (this.num > 0) {
+          --this.num;
+          return `${user.name} 预定成功！当前剩余量 ${this.getNum()}`;
+        }
+        return `${user.name} 预定失败！`;
+      };
+
+      // 缴纳定金 500 元
+      function Order500(user) {
+        if (user.orderMoney === 500 && user.prepay === true) {
+          console.log(`${user.name} 缴纳 500 预付金`);
+          user.setVoucher(100);
+          return this.shop.order(user);
+        } else {
+          return "nextOrder";
+        }
+      }
+
+      // 缴纳定金 100 元
+      function Order100(user) {
+        if (user.orderMoney === 100 && user.prepay === true) {
+          console.log(`${user.name} 缴纳 100 预付金`);
+          user.setVoucher(50);
+          return this.shop.order(user);
+        } else {
+          return "nextOrder";
+        }
+      }
+
+      // 未缴纳定金 普通用户
+      function OrderNormal(user) {
+        if (this.shop.getNum() > 10) {
+          return this.shop.order(user);
+        } else {
+          return `nextOrder`;
+        }
+      }
+
+      function OrderFactory(fn, shop) {
+        function f() {
+          this.shop = shop;
+          this.fn = fn;
+          this.nextOrder = null;
+        }
+
+        f.prototype.setNextOrder = function (nextOrder) {
+          this.nextOrder = nextOrder;
+        };
+
+        f.prototype.excute = function () {
+          const result = this.fn.apply(this, arguments);
+          if (result === "nextOrder") {
+            if (this.nextOrder) {
+              return this.nextOrder.excute.apply(this.nextOrder, arguments);
+            }
+            return "执行失败！";
+          }
+          return result;
+        };
+
+        return new f();
+      }
+
+      function User(name, orderMoney, prepay) {
+        this.name = name;
+        this.orderMoney = orderMoney;
+        this.prepay = prepay;
+      }
+
+      User.prototype.setVoucher = function (voucher) {
+        console.log(`${this.name} 获得代金券 ${voucher}`);
+      };
+
+      // 构建商场
+      const shop = new Shop(11);
+
+      // 构建职责
+      const orderStart = OrderFactory(Order500, shop);
+      const order100 = OrderFactory(Order100, shop);
+      const orderNormal = OrderFactory(OrderNormal, shop);
+
+      // 构建职责链
+      orderStart.setNextOrder(order100);
+      order100.setNextOrder(orderNormal);
+
+      // 构建用户
+      const user1 = new User("user1", 500, true);
+      const user2 = new User("user2", 500, false);
+      const user3 = new User("user3", 100, true);
+      const user4 = new User("user4", 0, true);
+
+      console.log(orderStart.excute(user1));
+      console.log(orderStart.excute(user2));
+      console.log(orderStart.excute(user3));
+      console.log(orderStart.excute(user4));
+    </script>
+  </body>
+</html>
