@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>订阅-发布的缓存</title>
+  </head>
+  <body>
+    <script type="text/javascript">
+      /*
+       * 订阅-发布的缓存   与test3.html 进行比对
+       * 发布若在订阅的前边，这个发布是无效的，需要我们重新发布，才能让订阅者接收到这个消息
+       * 假设有些消息使我们已经发布过的，但是订阅的人是后来的，这样就会使我们订阅无法接收到这些消息。
+       * 因此需要对我们的发布者添加发布缓存队列
+       * 每一个订阅者有订阅以后，先录入订阅信息，然后根据他的关注点在发布的缓存队列中，先进行一次循遍历与推送
+       * 保证我们发布者发布的消息仍然存在，不会因为无人订阅而无效
+       */
+      // 初始化工厂
+      var Event = {
+        /* 订阅列表 */
+        clientList: {},
+        triggerList: {},
+        /* 添加订阅 */
+        listen: function (key, listen) {
+          if (!this.clientList[key]) {
+            this.clientList[key] = [];
+          }
+          this.clientList[key].push(listen);
+          this.defaultListen(key, listen);
+        },
+        /* 默认执行订阅 */
+        defaultListen: function (key, listen) {
+          var triggers = this.triggerList[key];
+          if (!triggers || triggers.length == 0) {
+            return;
+          }
+          for (var i = 0; i < triggers.length; i++) {
+            listen.apply(this, triggers[i]);
+          }
+        },
+        /* 发布信息，并根据信息查找订阅列表 */
+        trigger: function () {
+          var key = Array.prototype.shift.call(arguments);
+          this.addtriggerList(key, arguments);
+          fns = this.clientList[key];
+          //判断是否存在发布信息
+          if (!fns || fns.length === 0) {
+            console.log("无人订阅此信息");
+            return false;
+          }
+          // 执行有记录的订阅
+          for (var i = 0, fn; (fn = fns[i++]); ) {
+            fn.apply(this, arguments);
+          }
+        },
+        /* 将发布添加到缓存队列中 */
+        addtriggerList: function (key, value) {
+          if (!this.triggerList[key]) {
+            this.triggerList[key] = [];
+          }
+          this.triggerList[key].push(value);
+        },
+        /* 移除某个特定的订阅  */
+        remove: function (key, fn) {
+          var fns = this.clientList[key];
+          if (fns.length == 0) {
+            return;
+          }
+          if (!fn) {
+            fns && (fns.length = 0);
+          } else {
+            for (var i = 0; i < fns.length; i++) {
+              var _fn = fns[i];
+              if (_fn === fn) {
+                fns.splice(i, 1);
+              }
+            }
+          }
+        },
+      };
+
+      // 将部件安装到对象身上
+      function instalEvent(obj) {
+        for (var i in Event) {
+          obj[i] = Event[i];
+        }
+      }
+      // 订阅的回调函数
+      function getDetail(price, Support) {
+        console.log(Support, price);
+      }
+
+      salfOffice = {}; //创建一个发布者
+      instalEvent(salfOffice);
+      salfOffice.trigger("123", 200000, 88); //无人订阅的发布
+
+      salfOffice.listen("123", getDetail); //小明订阅了 “123”
+    </script>
+  </body>
+</html>
